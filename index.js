@@ -1,5 +1,9 @@
 var Event = require('event'),
-    PREPEND = '', SEPARATE = '/', APPEND = '', POLLINTERVAL = 250;
+    PREPEND = '', 
+    SEPARATE = '/', 
+    APPEND = '', 
+    POLLINTERVAL = 250,
+    routing = {};
   
 /* singleton */
 var Hasher = {
@@ -13,8 +17,20 @@ var Hasher = {
         change: function(path){
             if(this.path !== path){
                 var old = this.path;
+
                 this.path = path; 
-                this.onChange(this, this.toString(old));
+                
+                if(this.onChange)
+                    this.onChange(this, this.toString(old));
+                
+                var match = Object.keys(routing).filter(function(route){
+                    return path.match(route);
+                });
+
+                match.forEach(function(execute) {
+                    if(typeof func === 'function')
+                        routing[execute]();
+                });
             }               
         },
         toString: function(path){
@@ -65,21 +81,33 @@ var Hasher = {
 
         return h < 0 ? '' : decodeURIComponent(url.substr(h+1,url.length));
     },
-    start: function(){
+    init: function(routes,options){
+        routes = routes || {};
+        options = options || {};
+        
+        routing = routes;
+
+        this.start(options.prepend,
+            options.separate,
+            options.append,
+            options.onchange,
+            options.pollinterval);
+    },
+    start: function(p,s,a,onchange,interval){
         var i = 0;  
 
         this.hash.path = this.uri();
 
         /* configure hash divisors */
-        if(typeof arguments[i] === 'string') this.hash._p = arguments[i++];
-        if(typeof arguments[i] === 'string') this.hash._s = arguments[i++];
-        if(typeof arguments[i] === 'string') this.hash._a = arguments[i++];
+        this.hash._p = p || PREPEND;
+        this.hash._s = s || SEPARATE;
+        this.hash._a = a || APPEND;
 
         /* register onChange callback */
-        if(typeof arguments[i] === 'function') this.hash.onChange = arguments[i++];
+        this.hash.onChange = onchange;
 
         /* poll interval in msec (used in fallback mode only) */
-        if(typeof arguments[i] === 'number') this.hash.poll = arguments[i++];
+        this.hash.poll = interval || POLLINTERVAL;
 
         if('onhashchange' in window) {
             Event.bind(window, 'hashchange', this.event);
