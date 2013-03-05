@@ -99,15 +99,15 @@ var Hasher = {
         this.hash.path = this.uri();
 
         /* configure hash divisors */
-        this.hash._p = p || PREPEND;
-        this.hash._s = s || SEPARATE;
-        this.hash._a = a || APPEND;
+        this.hash._p = p || PREPEND;
+        this.hash._s = s || SEPARATE;
+        this.hash._a = a || APPEND;
 
         /* register onChange callback */
         this.hash.onChange = onchange;
 
         /* poll interval in msec (used in fallback mode only) */
-        this.hash.poll = interval || POLLINTERVAL;
+        this.hash.poll = interval || POLLINTERVAL;
 
         if('onhashchange' in window) {
             Event.bind(window, 'hashchange', this.event);
