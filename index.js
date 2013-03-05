@@ -85,7 +85,7 @@ var Hasher = {
         if(typeof arguments[i] === 'number') this.hash.poll = arguments[i++];
 
         if('onhashchange' in window) {
-            Event.add(window, 'hashchange', this.event);
+            Event.bind(window, 'hashchange', this.event);
         } else {
             /* fallback mode */
             this._timer = setInterval(this.event, this.hash.poll);
@@ -95,7 +95,7 @@ var Hasher = {
     },
     stop: function() {
         if('onhashchange' in window) {
-            Event.remove(window, 'hashchange', this.event);
+            Event.unbind(window, 'hashchange', this.event);
         } else if(this._timer) {
             clearInterval(this._timer);
             this._timer = undefined;
