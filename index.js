@@ -11,7 +11,6 @@ var Hasher = {
         _p: PREPEND, 
         _s: SEPARATE, 
         change: function(path){
-            path = path.toLowercase();
             if(this.path !== path){
                 var old = this.path;
                 this.path = path; 
@@ -44,8 +43,6 @@ var Hasher = {
         this.hash.change(path);
     },
     update: function(path){
-        /* ignores case */
-        path = path.toLowercase();
         if(Array.isArray(path)){
             path = this.hash.toPath(path);
         } else {

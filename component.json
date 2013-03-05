@@ -1,6 +1,6 @@
 {
   "name": "hash",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "repo": "kaerus-component/hash",
   "description": "Window location hash navigator",
   "scripts": ["index.js"],
