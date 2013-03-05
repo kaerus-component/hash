@@ -16,17 +16,15 @@ var Hasher = {
         _s: SEPARATE, 
         change: function(path){
             if(this.path !== path){
-                var old = this.path,
+                var from = this.toString(), 
+                    to = this.toString(path),
                     match = Object.keys(routing).filter(function(route){
-                        return path.match(RegExp(route));
+                        return to.match(RegExp(route));
                     }).sort(), n = match.length;
                 
                 this.path = path; 
                 
-                if(this.onChange)
-                    this.onChange(this, this.toString(old));
-                
-                function next(){ if(n--) routing[match[n]](next) }
+                function next(){ if(n--) routing[match[n]](to,from,next) }
                 if(n) next();       
             }               
         },
@@ -52,8 +50,14 @@ var Hasher = {
     get: function(path) {
         return this.hash.toString(path);
     },
-    set: function(path){
-        this.hash.change(path);
+    set: function(newUrl){
+        this.hash.change(this.uri(newUrl));
+    },
+    uri: function(url){
+        url = url || window.location.href;
+        var h = url.indexOf('#');
+
+        return h < 0 ? '' : decodeURIComponent(url.substr(h+1,url.length));
     },
     update: function(path){
         if(Array.isArray(path)){
@@ -69,44 +73,34 @@ var Hasher = {
     },
     event: function(event) {
         event = Event.normalize(event);
-        var path = Hasher.uri(event ? event.newURL : undefined);
-        Hasher.set(path);
-    },
-    uri: function(url){
-        url = url || window.location.href;
-        var h = url.indexOf('#');
-
-        return h < 0 ? '' : decodeURIComponent(url.substr(h+1,url.length));
+        Hasher.set(event.newURL);
     },
     route: function(match,callback){
         routing[match] = callback;
 
         return this;
     },
-    init: function(options,callback){
-        options = options || {};
+    init: function() {
+        var i = 0, options = {}, callback;
 
-        this.start(options.prepend,
-            options.separate,
-            options.append,
-            options.poll,
-            callback);
+        if(typeof arguments[i] === 'object')
+            options = arguments[i++];
+        if(typeof arguments[i] === 'function')
+            callback = arguments[i++];
+
+        this.start(options,callback);
     },
-    start: function(p,s,a,interval,callback){
-        var i = 0;  
+    start: function(options,callback){
 
         this.hash.path = this.uri();
 
         /* configure hash divisors */
-        this.hash._p = p || PREPEND;
-        this.hash._s = s || SEPARATE;
-        this.hash._a = a || APPEND;
-
-        /* register onChange callback */
-        this.hash.onChange = callback;
+        this.hash._p = options.prepend || PREPEND;
+        this.hash._s = options.separate || SEPARATE;
+        this.hash._a = options.append || APPEND;
 
         /* poll interval in msec (used in fallback mode only) */
-        this.hash.poll = interval || POLLINTERVAL;
+        this.hash.poll = options.poll || POLLINTERVAL;
 
         if('onhashchange' in window) {
             Event.bind(window, 'hashchange', this.event);
@@ -115,7 +109,7 @@ var Hasher = {
             this._timer = setInterval(this.event, this.hash.poll);
         }
 
-        if(this.hash.onChange) this.hash.onChange(this.hash);
+        if(callback) callback(this.hash.toString());
     },
     stop: function() {
         if('onhashchange' in window) {

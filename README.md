@@ -19,13 +19,17 @@ Usage
 	<script>
 		var hash = require('hash');
 
-		hash.route(".*",change).init({prepend:"!"});
+		hash.route(".*", function(to,form,next){
+			console.log("hash changed from %s to",from,to);
+			next();
+		}).route("start", function(){
+			console.log("start route");
+		}).route("contact", function(){
+			console.log("contact route");
+		}).init({prepend:"!"},function(path) {
+			console.log("hash start path", path);
+		});
 
-		function change(newPath,oldPath) {
-			if(!old) console.log("hash start path", newPath);
-			else console.log("hash changed from %s to",oldPath,newPath);
-		}
-		
 		document.getElementById('buttons').onclick = click;
 
 		function click(event){
