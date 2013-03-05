@@ -24,7 +24,7 @@ var Hasher = {
                 
                 this.path = path; 
                 
-                function next(){ if(n--) routing[match[n]](to,from,next) }
+                function next(x){ if(n--) routing[match[n]](to,from,next,x) }
                 if(n) next();       
             }               
         },
