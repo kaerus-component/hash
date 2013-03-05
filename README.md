@@ -17,8 +17,11 @@ Usage
 	</div>	
 	<script src="hash.js"></script>
 	<script>
-		/* configure the hash string "#!xxx/yyy:" */
-		var hash = require('hash').start("!","/",":",function (newPath,oldPath) {
+		var hash = require('hash');
+
+		hash.route(".*",change).init({prepend:"!"});
+
+		function change(newPath,oldPath) {
 			if(!old) console.log("hash start path", newPath);
 			else console.log("hash changed from %s to",oldPath,newPath);
 		}

@@ -16,21 +16,18 @@ var Hasher = {
         _s: SEPARATE, 
         change: function(path){
             if(this.path !== path){
-                var old = this.path;
-
+                var old = this.path,
+                    match = Object.keys(routing).filter(function(route){
+                        return path.match(RegExp(route));
+                    }).sort(), n = match.length;
+                
                 this.path = path; 
                 
                 if(this.onChange)
                     this.onChange(this, this.toString(old));
                 
-                var match = Object.keys(routing).filter(function(route){
-                    return path.match(route);
-                });
-
-                match.forEach(function(execute) {
-                    if(typeof func === 'function')
-                        routing[execute]();
-                });
+                function next(){ if(n--) routing[match[n]](next) }
+                if(n) next();       
             }               
         },
         toString: function(path){
@@ -81,19 +78,21 @@ var Hasher = {
 
         return h < 0 ? '' : decodeURIComponent(url.substr(h+1,url.length));
     },
-    init: function(routes,options){
-        routes = routes || {};
+    route: function(match,callback){
+        routing[match] = callback;
+
+        return this;
+    },
+    init: function(options,callback){
         options = options || {};
-        
-        routing = routes;
 
         this.start(options.prepend,
             options.separate,
             options.append,
-            options.onchange,
-            options.pollinterval);
+            options.poll,
+            callback);
     },
-    start: function(p,s,a,onchange,interval){
+    start: function(p,s,a,interval,callback){
         var i = 0;  
 
         this.hash.path = this.uri();
@@ -104,7 +103,7 @@ var Hasher = {
         this.hash._a = a || APPEND;
 
         /* register onChange callback */
-        this.hash.onChange = onchange;
+        this.hash.onChange = callback;
 
         /* poll interval in msec (used in fallback mode only) */
         this.hash.poll = interval || POLLINTERVAL;
