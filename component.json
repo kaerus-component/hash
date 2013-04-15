@@ -4,5 +4,6 @@
   "repo": "kaerus-component/hash",
   "description": "Window location hash navigator",
   "scripts": ["index.js"],
-  "dependencies": {"kaerus-component/event":"*"}
+  "dependencies": {"kaerus-component/event":"*"},
+  "license": "Apache2_0"
 }
