@@ -26,7 +26,9 @@ var Hasher = {
                 
                 function next(x){ if(n--) routing[match[n]](to,from,next,x) }
                 if(n) next();       
-            }               
+            } 
+
+            return this.path;              
         },
         toString: function(path){
             if(!path || path === undefined) path = this.path;
@@ -51,13 +53,15 @@ var Hasher = {
         return this.hash.toString(path);
     },
     set: function(newUrl){
-        this.hash.change(this.uri(newUrl));
+        return this.hash.change(this.uri(newUrl));
     },
     uri: function(url){
         url = url || window.location.href;
         var h = url.indexOf('#');
 
         return h < 0 ? '' : decodeURIComponent(url.substr(h+1,url.length));
+
+        return this;
     },
     update: function(path){
         if(Array.isArray(path)){
@@ -70,10 +74,14 @@ var Hasher = {
             this.hash.change(path); 
             window.location.hash = '#'+ encodeURI(path); 
         }
+
+        return this;
     },
     event: function(event) {
         event = Event.normalize(event);
         Hasher.set(event.newURL);
+
+        return this;
     },
     route: function(match,callback){
         routing[match] = callback;
@@ -89,6 +97,8 @@ var Hasher = {
             callback = arguments[i++];
 
         this.start(options,callback);
+
+        return this;
     },
     start: function(options,callback){
 
@@ -110,6 +120,8 @@ var Hasher = {
         }
 
         if(callback) callback(this.hash.toString());
+
+        return this;
     },
     stop: function() {
         if('onhashchange' in window) {
@@ -118,6 +130,8 @@ var Hasher = {
             clearInterval(this._timer);
             this._timer = undefined;
         }
+
+        return this;
     },
 
 }; 
