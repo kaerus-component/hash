@@ -15,23 +15,23 @@ var Hasher = {
         _p: PREPEND, 
         _s: SEPARATE, 
         change: function(path){
-            if(this.path !== path){
-                var from = this.toString(), 
-                    to = this.toString(path),
-                    match = Object.keys(routing).filter(function(route){
-                        return to.match(RegExp(route));
-                    }).sort(), n = match.length;
-                
-                this.path = path; 
-                
-                function next(x){ if(n--) routing[match[n]](to,from,next,x) }
-                if(n) next();       
-            } 
+            var from = this.toString(), to = this.toString(path);
 
-            return this.path;              
+            return from !== to ? this.route(from,to) : from;              
+        },
+        route: function(from,to){
+            var n, match = Object.keys(routing).filter(function(route){
+                    return to.match(RegExp(route));
+                }).sort(), n = match.length; 
+
+            /* todo: fix sort ordering */
+            function next(x){ if(n--) routing[match[n]](to,from,next,x) }
+            if(n) next();
+
+            return this.toString();
         },
         toString: function(path){
-            if(!path || path === undefined) path = this.path;
+            if(!path || path === undefined) path = this.path || '';
 
             var a = path.indexOf(this._p),
                 b = path.lastIndexOf(this._a);
@@ -49,37 +49,29 @@ var Hasher = {
             return this._p + array.join(this._s) + this._a;
         }
     },  
-    get: function(path) {
-        return this.hash.toString(path);
+    get: function(url) {
+        return hashFromURL(url);
     },
-    set: function(newUrl){
-        return this.hash.change(this.uri(newUrl));
+    set: function(hash){
+        return this.hash.change(hash);
     },
-    uri: function(url){
-        url = url || window.location.href;
-        var h = url.indexOf('#');
-
-        return h < 0 ? '' : decodeURIComponent(url.substr(h+1,url.length));
-
-        return this;
-    },
-    update: function(path){
-        if(Array.isArray(path)){
-            path = this.hash.toPath(path);
+    update: function(hash){
+        var path;
+        if(Array.isArray(hash)){
+            path = this.hash.toPath(hash);
         } else {
             path = this.hash.toPath([].slice.call(arguments));
         }    
 
         if(path !== this.hash.path){
-            this.hash.change(path); 
+            //this.hash.change(path); 
             window.location.hash = '#'+ encodeURI(path); 
         }
 
         return this;
     },
     event: function(event) {
-        event = Event.normalize(event);
-        Hasher.set(event.newURL);
+        Hasher.set(hashFromURL(event.newURL));
 
         return this;
     },
@@ -101,9 +93,6 @@ var Hasher = {
         return this;
     },
     start: function(options,callback){
-
-        this.hash.path = this.uri();
-
         /* configure hash divisors */
         this.hash._p = options.prepend || PREPEND;
         this.hash._s = options.separate || SEPARATE;
@@ -119,7 +108,7 @@ var Hasher = {
             this._timer = setInterval(this.event, this.hash.poll);
         }
 
-        if(callback) callback(this.hash.toString());
+        if(callback) callback(hashFromURL());
 
         return this;
     },
@@ -135,5 +124,13 @@ var Hasher = {
     },
 
 }; 
+
+function hashFromURL(url){
+    url = url || window.location.href;
+    var h = url.indexOf('#');
+
+    return h < 0 ? '' : decodeURIComponent(url.substr(h+1,url.length));
+}
    
 module.exports = Hasher;
+
